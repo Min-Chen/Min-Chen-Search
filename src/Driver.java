@@ -11,7 +11,6 @@ public class Driver {
     private static HashMap<String, HashMap<String, ArrayList<Integer>>> map = new HashMap<String, HashMap<String, ArrayList<Integer>>>();
     private static String currentFileName;
     private static int currentWordIndex;
-    private static List<OneQuery> querys = new ArrayList<OneQuery>();
 
     public static void main(String[] args) throws IOException {
         int args_i_index = -1;
@@ -86,11 +85,15 @@ public class Driver {
             }
         }
 
-        if (args_q_index != -1) getQuerys(pathInQuery);
         getFiles(pathInFiles);
 
+        SearchQuery sq = null;
+        if (args_q_index != -1) {
+            sq = new SearchQuery(map, pathInQuery, pathOutQuery);
+        }
+
         if (args_i_index != -1) outPutIndex(pathOutIndex);
-        if (args_s_index != -1) outPutQuerys(pathOutQuery);
+        if (args_s_index != -1) sq.outPutQuerys();
     }
 
     public static void getFiles(String path) {
@@ -160,12 +163,6 @@ public class Driver {
             temMap.put(currentFileName, temAL);
             map.put(str, temMap);
         }
-
-        for (int i=0; i<querys.size(); i++) {
-            if (querys.get(i).has(str)) {
-                querys.get(i).add(currentFileName, currentWordIndex);
-            }
-        }
     }
 
     public static void outPutIndex(String path) throws IOException {
@@ -195,43 +192,6 @@ public class Driver {
                 }
             }
         }
-        out.flush();
-        out.close();
-    }
-
-    public static void getQuerys(String path) {
-        try {
-            FileReader fr = new FileReader (path);
-            BufferedReader br = new BufferedReader(fr);
-
-            String str;
-            while ((str= br.readLine()) != null){
-                querys.add(new OneQuery(str));
-            }
-            br.close();
-        } catch (FileNotFoundException e) {
-            System.out.println ("File not found");
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    public static void outPutQuerys(String path) throws IOException {
-        File file = new File(path);
-        file.createNewFile();
-        BufferedWriter out = new BufferedWriter(new FileWriter(file));
-
-        boolean firstFlag = true;
-
-        for (OneQuery q: querys) {
-            if (firstFlag) {
-                firstFlag = false;
-            }
-            else out.write("\n");
-
-            out.write(q + "\n");
-        }
-
         out.flush();
         out.close();
     }
