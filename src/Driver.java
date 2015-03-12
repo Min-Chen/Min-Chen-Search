@@ -83,12 +83,15 @@ public class Driver {
 
         MultithreadedInvertedIndex ii = new MultithreadedInvertedIndex(pathInFiles);
 
-        SearchQuery sq = null;
+        MultithreadedSearchQuery sq = null;
         if (args_q_index != -1) {
-            sq = new SearchQuery(ii.getWholeMap(), pathInQuery, pathOutQuery);
+            sq = new MultithreadedSearchQuery(ii.getWholeMap(), pathInQuery);
         }
 
         if (args_i_index != -1) ii.outPutIndex(pathOutIndex);
-        if (args_s_index != -1) sq.outPutQuerys();
+        if (args_s_index != -1) sq.outPutQuerys(pathOutQuery);
+
+        ii.shutdown();
+        sq.shutdown();
     }
 }
