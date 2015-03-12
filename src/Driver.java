@@ -81,11 +81,11 @@ public class Driver {
             }
         }
 
-        InvertedIndex ii = new InvertedIndex(pathInFiles);
+        MultithreadedInvertedIndex ii = new MultithreadedInvertedIndex(pathInFiles);
 
         SearchQuery sq = null;
         if (args_q_index != -1) {
-            sq = new SearchQuery(ii.getMap(), pathInQuery, pathOutQuery);
+            sq = new SearchQuery(ii.getWholeMap(), pathInQuery, pathOutQuery);
         }
 
         if (args_i_index != -1) ii.outPutIndex(pathOutIndex);
