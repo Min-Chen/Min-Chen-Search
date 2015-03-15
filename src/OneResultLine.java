@@ -16,8 +16,9 @@ public class OneResultLine {
         return this.fileName.equals(fileName);
     }
 
-    public void addOne() {
+    public void addOne(int index) {
         this.frequency++;
+        if (index < firstIndex) firstIndex = index;
     }
 
     public String toString() {

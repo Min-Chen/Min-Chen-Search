@@ -35,6 +35,7 @@ public class WorkQueue {
      * @param threads number of worker threads; should be greater than 1
      */
     public WorkQueue(int threads) {
+        if (threads <= 0) threads = 5;
         this.queue   = new LinkedList<Runnable>();
         this.workers = new PoolWorker[threads];
 
@@ -120,6 +121,7 @@ public class WorkQueue {
                 catch (RuntimeException ex) {
                     System.err.println("Warning: Work queue encountered an " +
                             "exception while running.");
+                    ex.printStackTrace();
                 }
             }
         }

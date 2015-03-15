@@ -5,6 +5,7 @@ import java.util.List;
 /**
  * Created by minchen on 15/3/7.
  */
+
 public class OneQuery {
     private String query;
     private String[] words;
@@ -38,7 +39,7 @@ public class OneQuery {
         }
 
         if (alreadyExist) {
-            result.get(resultIndex).addOne();
+            result.get(resultIndex).addOne(index);
         }
         else {
             result.add(new OneResultLine(fileName, index));

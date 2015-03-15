@@ -2,3 +2,6 @@
 *.iml
 *.txt
 out/*
+input/*
+*.jar
+src/test/*

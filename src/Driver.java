@@ -1,18 +1,16 @@
 import java.io.*;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
+import static java.lang.Thread.sleep;
 
 /**
  * Created by minchen on 15/3/7.
  */
 public class Driver {
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         int args_i_index = -1;
         int args_d_index = -1;
         int args_q_index = -1;
         int args_s_index = -1;
+        int args_t_index = -1;
 
         int i=0;
         for (String s: args) {
@@ -29,6 +27,9 @@ public class Driver {
                 case "-s":
                     args_s_index = i;
                     break;
+                case "-t":
+                    args_t_index = i;
+                    break;
                 default:
                     break;
             }
@@ -37,7 +38,7 @@ public class Driver {
 
         String pathInFiles = "./";
         if (args_d_index != -1) {
-            if (args.length > args_d_index + 1 && !args[args_d_index+1].equals("-i") && !args[args_d_index+1].equals("-s") && !args[args_d_index+1].equals("-q")) {
+            if (args.length > args_d_index + 1 && !args[args_d_index+1].equals("-i") && !args[args_d_index+1].equals("-s") && !args[args_d_index+1].equals("-q") || args[args_d_index+1].equals("-t")) {
                 pathInFiles = args[args_d_index+1];
             }
             else {
@@ -52,7 +53,7 @@ public class Driver {
 
         String pathOutIndex = "./index.txt";
         if (args_i_index != -1) {
-            if (args.length <= args_i_index + 1 || args[args_i_index+1].equals("-d") || args[args_i_index+1].equals("-q") || args[args_i_index+1].equals("-s")) {
+            if (args.length <= args_i_index + 1 || args[args_i_index+1].equals("-d") || args[args_i_index+1].equals("-q") || args[args_i_index+1].equals("-s") || args[args_i_index+1].equals("-t")) {
                 pathOutIndex = "./index.txt";
             }
             else if (args.length > args_i_index + 1) {
@@ -60,10 +61,10 @@ public class Driver {
             }
         }
 
-        String pathOutQuery = "./search.txt";
+        String pathOutQuery = "search.txt";
         if (args_s_index != -1) {
-            if (args.length <= args_s_index + 1 || args[args_s_index+1].equals("-d") || args[args_s_index+1].equals("-q") || args[args_s_index+1].equals("-i")) {
-                pathOutQuery = "./search.txt";
+            if (args.length <= args_s_index + 1 || args[args_s_index+1].equals("-d") || args[args_s_index+1].equals("-q") || args[args_s_index+1].equals("-i") || args[args_s_index+1].equals("-t")) {
+                pathOutQuery = "search.txt";
             }
             else if (args.length > args_s_index + 1) {
                 pathOutQuery = args[args_s_index+1];
@@ -72,7 +73,7 @@ public class Driver {
 
         String pathInQuery = "./search.txt";
         if (args_q_index != -1) {
-            if (args.length <= args_q_index + 1 || args[args_q_index+1].equals("-d") || args[args_q_index+1].equals("-s") || args[args_q_index+1].equals("-i")) {
+            if (args.length <= args_q_index + 1 || args[args_q_index+1].equals("-d") || args[args_q_index+1].equals("-s") || args[args_q_index+1].equals("-i") || args[args_q_index+1].equals("-t")) {
                 System.out.println("-q argument input error");
                 return ;
             }
@@ -81,17 +82,60 @@ public class Driver {
             }
         }
 
-        MultithreadedInvertedIndex ii = new MultithreadedInvertedIndex(pathInFiles);
+        int threadAmount = 5;
+        if (args_t_index != -1) {
+            if (args.length <= args_t_index + 1 || args[args_t_index+1].equals("-d") || args[args_t_index+1].equals("-s") || args[args_t_index+1].equals("-i") || args[args_t_index+1].equals("-q")) {
+                System.out.println("-t argument input error");
+                return ;
+            }
+            else if (args.length > args_t_index + 1) {
+                String thread = args[args_t_index+1];
+                if (thread.replaceAll("[0-9]","").length()>0) threadAmount = 5;
+                else threadAmount = Integer.parseInt(args[args_t_index+1]);
+            }
+        }
+        else {
+            threadAmount = 1;
+        }
+
+        File file = new File(pathInFiles);
+        if (!file.isDirectory()) {
+            System.out.println("No Directory");
+            return;
+        }
+
+        MultithreadedInvertedIndex ii = new MultithreadedInvertedIndex(pathInFiles,threadAmount);
+
+        while (true) {
+            sleep(10);
+            if (ii.finished()) break;
+        }
 
         MultithreadedSearchQuery sq = null;
         if (args_q_index != -1) {
-            sq = new MultithreadedSearchQuery(ii.getWholeMap(), pathInQuery);
+            sq = new MultithreadedSearchQuery(ii.getWholeMap(), pathInQuery,threadAmount);
+
+            while (true) {
+                sleep(10);
+                if (sq.finished()) break;
+            }
         }
 
-        if (args_i_index != -1) ii.outPutIndex(pathOutIndex);
-        if (args_s_index != -1) sq.outPutQuerys(pathOutQuery);
+        if (args_i_index != -1) {
+            ii.outPutIndex(pathOutIndex);
+        }
+
+
+        if (args_s_index != -1) {
+            file = new File(pathOutQuery);
+            if (file.isDirectory()) {
+                System.out.println("No Write Directory");
+                return ;
+            }
+            sq.outPutQuerys(pathOutQuery);
+        }
 
         ii.shutdown();
-        sq.shutdown();
+        if(args_q_index != -1) sq.shutdown();
     }
 }

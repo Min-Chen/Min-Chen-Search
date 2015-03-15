@@ -4,22 +4,24 @@ import java.util.HashMap;
 
 //This file follows https://github.com/cs212/lectures/blob/fall2014/Advanced%20Multithreading/src/MultithreadedDirectorySizeCalculator.java
 
-/**
- * Created by minchen on 15/3/11.
- */
 public class MultithreadedSearchQuery {
     private final WorkQueue minions;
     private int pending;
-    private HashMap<String, HashMap<String, ArrayList<Integer>>> map;
-    private ArrayList<OneQuery> querys;
+    private final HashMap<String, HashMap<String, ArrayList<Integer>>> map;
+    private HashMap<Integer,OneQuery> querys;
+    private int queryAmount;
 
-    public MultithreadedSearchQuery(HashMap<String, HashMap<String, ArrayList<Integer>>> map, String path) {
-        minions = new WorkQueue();
+    public MultithreadedSearchQuery(HashMap<String, HashMap<String, ArrayList<Integer>>> map, String path, int threads) {
+        minions = new WorkQueue(threads);
         pending = 0;
         this.map = map;
-        querys = new ArrayList<>();
+        querys = new HashMap<>();
 
         getQuerys(path);
+    }
+
+    public boolean finished() {
+        return pending == 0;
     }
 
     public void getQuerys(String path) {
@@ -28,9 +30,13 @@ public class MultithreadedSearchQuery {
             BufferedReader br = new BufferedReader(fr);
 
             String str;
+            int i = 0;
             while ((str= br.readLine()) != null){
-                minions.execute(new SearchQuery(new OneQuery(str)));
+                minions.execute(new SearchQuery(new OneQuery(str), i));
+                i++;
             }
+            queryAmount = i;
+
             br.close();
         } catch (FileNotFoundException e) {
             System.out.println ("File not found");
@@ -44,24 +50,17 @@ public class MultithreadedSearchQuery {
         file.createNewFile();
         BufferedWriter out = new BufferedWriter(new FileWriter(file));
 
-        boolean firstFlag = true;
-
-        for (OneQuery q: querys) {
-            if (firstFlag) {
-                firstFlag = false;
-            }
-            else out.write("\n");
-
-            out.write(q + "\n");
+        for (int i=0; i<queryAmount; i++) {
+            if (i!=0) out.write("\n");
+            out.write(querys.get(i) + "\n");
+            out.flush();
         }
-
-        out.flush();
         out.close();
     }
 
     public synchronized void reset() {
         finish();
-        querys = new ArrayList<>();
+        querys = new HashMap<>();
     }
 
     public synchronized void finish() {
@@ -91,15 +90,17 @@ public class MultithreadedSearchQuery {
         }
     }
 
-    private synchronized void storeQueryResult(OneQuery q) {
-        querys.add(q);
+    private synchronized void storeQueryResult(OneQuery q, int index) {
+        querys.put(index, q);
     }
 
     private class SearchQuery implements Runnable {
         private OneQuery q;
+        private int index;
 
-        public SearchQuery(OneQuery q) {
+        public SearchQuery(OneQuery q, int index) {
             this.q = q;
+            this.index = index;
 
             incrementPending();
         }
@@ -110,8 +111,8 @@ public class MultithreadedSearchQuery {
                     HashMap<String, ArrayList<Integer>> fileNamesMap = map.get(word);
                     for (String fileName: fileNamesMap.keySet()) {
                         ArrayList<Integer> indexs = fileNamesMap.get(fileName);
-                        for(int i: indexs) {
-                            q.add(fileName, i);
+                        for(int i=0; i<indexs.size(); i++) {
+                            q.add(fileName, indexs.get(i));
                         }
                     }
                 }
@@ -121,7 +122,7 @@ public class MultithreadedSearchQuery {
         @Override
         public void run() {
             search();
-            storeQueryResult(q);
+            storeQueryResult(q,index);
             decrementPending();
         }
     }

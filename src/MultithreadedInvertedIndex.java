@@ -5,20 +5,23 @@ import java.util.HashMap;
 
 //This file follows https://github.com/cs212/lectures/blob/fall2014/Advanced%20Multithreading/src/MultithreadedDirectorySizeCalculator.java
 
-/**
- * Created by minchen on 15/3/11.
- */
 public class MultithreadedInvertedIndex {
     private final WorkQueue minions;
     private int pending;
     private HashMap<String, HashMap<String, ArrayList<Integer>>> wholeMap;
+    private boolean isWriting;
 
-    public MultithreadedInvertedIndex(String path) {
-        minions = new WorkQueue();
+    public MultithreadedInvertedIndex(String path, int threads) {
+        minions = new WorkQueue(threads);
         pending = 0;
         wholeMap = new HashMap<>();
+        isWriting = false;
 
         getFiles(path);
+    }
+
+    public boolean finished() {
+        return pending == 0;
     }
 
     public synchronized void reset() {
@@ -84,8 +87,8 @@ public class MultithreadedInvertedIndex {
                     out.write(", " + value2.get(i));
                 }
             }
+            out.flush();
         }
-        out.flush();
         out.close();
     }
 
@@ -100,6 +103,7 @@ public class MultithreadedInvertedIndex {
                 wholeMap.put(word,map.get(word));
             }
         }
+
     }
 
     private synchronized void incrementPending() {
@@ -122,7 +126,7 @@ public class MultithreadedInvertedIndex {
         public InvertedIndex(String path) {
             this.map = new HashMap<>();
             currentWordIndex = 1;
-            currentFileName = new File(path).getAbsolutePath();
+            currentFileName = new File(path).toString();
 
             incrementPending();
         }
