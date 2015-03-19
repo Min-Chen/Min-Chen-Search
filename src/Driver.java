@@ -11,6 +11,7 @@ public class Driver {
         int args_q_index = -1;
         int args_s_index = -1;
         int args_t_index = -1;
+        int args_u_index = -1;
 
         int i=0;
         for (String s: args) {
@@ -30,6 +31,9 @@ public class Driver {
                 case "-t":
                     args_t_index = i;
                     break;
+                case "-u":
+                    args_u_index = i;
+                    break;
                 default:
                     break;
             }
@@ -38,7 +42,7 @@ public class Driver {
 
         String pathInFiles = "./";
         if (args_d_index != -1) {
-            if (args.length > args_d_index + 1 && !args[args_d_index+1].equals("-i") && !args[args_d_index+1].equals("-s") && !args[args_d_index+1].equals("-q") || args[args_d_index+1].equals("-t")) {
+            if (args.length > args_d_index + 1 && !args[args_d_index+1].equals("-i") && !args[args_d_index+1].equals("-s") && !args[args_d_index+1].equals("-q") || args[args_d_index+1].equals("-t") || args[args_d_index+1].equals("-u")) {
                 pathInFiles = args[args_d_index+1];
             }
             else {
@@ -47,13 +51,15 @@ public class Driver {
             }
         }
         else {
-            System.out.println("-d argument input error");
-            return ;
+            if (args_u_index == -1) {
+                System.out.println("-d argument input error");
+                return ;
+            }
         }
 
         String pathOutIndex = "./index.txt";
         if (args_i_index != -1) {
-            if (args.length <= args_i_index + 1 || args[args_i_index+1].equals("-d") || args[args_i_index+1].equals("-q") || args[args_i_index+1].equals("-s") || args[args_i_index+1].equals("-t")) {
+            if (args.length <= args_i_index + 1 || args[args_i_index+1].equals("-d") || args[args_i_index+1].equals("-q") || args[args_i_index+1].equals("-s") || args[args_i_index+1].equals("-t") || args[args_i_index+1].equals("-u")) {
                 pathOutIndex = "./index.txt";
             }
             else if (args.length > args_i_index + 1) {
@@ -63,7 +69,7 @@ public class Driver {
 
         String pathOutQuery = "search.txt";
         if (args_s_index != -1) {
-            if (args.length <= args_s_index + 1 || args[args_s_index+1].equals("-d") || args[args_s_index+1].equals("-q") || args[args_s_index+1].equals("-i") || args[args_s_index+1].equals("-t")) {
+            if (args.length <= args_s_index + 1 || args[args_s_index+1].equals("-d") || args[args_s_index+1].equals("-q") || args[args_s_index+1].equals("-i") || args[args_s_index+1].equals("-t") || args[args_s_index+1].equals("-u")) {
                 pathOutQuery = "search.txt";
             }
             else if (args.length > args_s_index + 1) {
@@ -73,7 +79,7 @@ public class Driver {
 
         String pathInQuery = "./search.txt";
         if (args_q_index != -1) {
-            if (args.length <= args_q_index + 1 || args[args_q_index+1].equals("-d") || args[args_q_index+1].equals("-s") || args[args_q_index+1].equals("-i") || args[args_q_index+1].equals("-t")) {
+            if (args.length <= args_q_index + 1 || args[args_q_index+1].equals("-d") || args[args_q_index+1].equals("-s") || args[args_q_index+1].equals("-i") || args[args_q_index+1].equals("-t") || args[args_q_index+1].equals("-u")) {
                 System.out.println("-q argument input error");
                 return ;
             }
@@ -84,7 +90,7 @@ public class Driver {
 
         int threadAmount = 5;
         if (args_t_index != -1) {
-            if (args.length <= args_t_index + 1 || args[args_t_index+1].equals("-d") || args[args_t_index+1].equals("-s") || args[args_t_index+1].equals("-i") || args[args_t_index+1].equals("-q")) {
+            if (args.length <= args_t_index + 1 || args[args_t_index+1].equals("-d") || args[args_t_index+1].equals("-s") || args[args_t_index+1].equals("-i") || args[args_t_index+1].equals("-q") || args[args_t_index+1].equals("-u")) {
                 System.out.println("-t argument input error");
                 return ;
             }
@@ -98,13 +104,30 @@ public class Driver {
             threadAmount = 1;
         }
 
+        String seed = "";
+        if (args_u_index != -1) {
+            if (args.length <= args_u_index + 1 || args[args_u_index+1].equals("-d") || args[args_u_index+1].equals("-s") || args[args_u_index+1].equals("-i") || args[args_u_index+1].equals("-t") || args[args_u_index+1].equals("-q")) {
+                System.out.println("-u argument input error");
+                return ;
+            }
+            else if (args.length > args_u_index + 1) {
+                seed = args[args_u_index+1];
+            }
+        }
+
         File file = new File(pathInFiles);
         if (!file.isDirectory()) {
             System.out.println("No Directory");
             return;
         }
 
-        MultithreadedInvertedIndex ii = new MultithreadedInvertedIndex(pathInFiles,threadAmount);
+        MultithreadedInvertedIndex ii;
+        if (seed.equals("")) {
+            ii = new MultithreadedInvertedIndex(pathInFiles,threadAmount);
+        }
+        else {
+            ii = new MultithreadedInvertedIndex(threadAmount, seed);
+        }
 
         while (true) {
             sleep(10);
@@ -129,7 +152,7 @@ public class Driver {
         if (args_s_index != -1) {
             file = new File(pathOutQuery);
             if (file.isDirectory()) {
-                System.out.println("No Write Directory");
+                System.out.println("No write Directory");
                 return ;
             }
             sq.outPutQuerys(pathOutQuery);
