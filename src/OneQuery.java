@@ -57,4 +57,16 @@ public class OneQuery {
         }
         return str;
     }
+
+    public String toWebOutPut() {
+        String str = "";
+        if (result.size() == 0) str = "No result for this query";
+        else {
+            Collections.sort(result, new QueryResultComparator());
+            for (OneResultLine l: result) {
+                str += "\n" + l.toWebOutPut();
+            }
+        }
+        return str;
+    }
 }

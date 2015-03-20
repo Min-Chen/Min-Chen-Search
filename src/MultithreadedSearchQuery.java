@@ -20,6 +20,16 @@ public class MultithreadedSearchQuery {
         getQuerys(path);
     }
 
+    public MultithreadedSearchQuery(HashMap<String, HashMap<String, ArrayList<Integer>>> map, int threads, String query) {
+        minions = new WorkQueue(threads);
+        pending = 0;
+        this.map = map;
+        querys = new HashMap<>();
+
+        minions.execute(new SearchQuery(new OneQuery(query), 1));
+        queryAmount = 1;
+    }
+
     public boolean finished() {
         return pending == 0;
     }
@@ -56,6 +66,10 @@ public class MultithreadedSearchQuery {
             out.flush();
         }
         out.close();
+    }
+
+    public String toWebOutPut() {
+        return querys.get(1).toWebOutPut();
     }
 
     public synchronized void reset() {

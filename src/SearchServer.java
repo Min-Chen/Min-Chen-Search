@@ -11,6 +11,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.servlet.ServletHandler;
 
+import static java.lang.Thread.sleep;
+
 //Origional from https://github.com/cs212/lectures/blob/fall2014/DynamicHTML/src/HelloServer.java
 
 /**
@@ -95,9 +97,33 @@ public class SearchServer {
             out.printf("<h1>Min Chen Search</h1>%n");
 
             out.printf("<form action=\"search\" method=\"get\">");
-            out.printf("<input type=\"text\" style = \"height:32px;width:600px;padding:3px;font-size:16px;\" />");
+            out.printf("<input type=\"text\" style = \"height:32px;width:600px;padding:3px;font-size:16px;\" name = \"query\"/>");
             out.printf("<input type=\"submit\" value=\"Submit\" style = \"height:32px;width:60px;padding:3px;margin-left:20px;line-height:30px;font-size:24px\"/>");
             out.printf("</form>");
+
+            String query = request.getParameter("query");
+            out.printf("<div style = \"font-size:18px\" >Search results for : %s</div>", query);
+
+            MultithreadedInvertedIndex ii = new MultithreadedInvertedIndex(5,"http://logging.apache.org/log4j/1.2/apidocs/allclasses-noframe.html");
+            try {
+                while (true) {
+                    sleep(10);
+                    if (ii.finished()) break;
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+
+            MultithreadedSearchQuery sq = new MultithreadedSearchQuery(ii.getWholeMap(), 5, query);
+            try {
+                while (true) {
+                    sleep(10);
+                    if (sq.finished()) break;
+                }
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            out.printf(sq.toWebOutPut());
 
             out.printf("</div>");
 
