@@ -26,7 +26,7 @@ public class OneResultLine {
     }
 
     public String toWebOutPut() {
-        return "<div style=\"margin-top:8px\" >\n<div>\n<a href=\"" + fileName + "\">" + fileName + "</a>\n</div>\n<div>\n Frequency: " + frequency + ", First Index: " + firstIndex + "</div>\n</div>\n";
+        return "<div style=\"margin-top:8px\" >\n<div>\n<a href=\"goto?url=" + fileName + "\">" + fileName + "</a>\n</div>\n<div>\n Frequency: " + frequency + ", First Index: " + firstIndex + "</div>\n</div>\n";
     }
 
     public int getFrequency() {

@@ -13,17 +13,19 @@ public class WebUtil {
     }
 
     public static void executeSQL(String sqlString) throws SQLException {
+        closeDB();
         Statement s = connectToDB();
         s.executeUpdate(sqlString);
     }
 
     public static ResultSet executeQuery(String sqlString) throws SQLException {
+        closeDB();
         Statement s = connectToDB();
         return s.executeQuery(sqlString);
     }
 
     public static void closeDB() throws SQLException {
-        if (!c.isClosed()) c.close();
+        if (c!=null && !c.isClosed()) c.close();
     }
 
     public static Cookie getCookie(HttpServletRequest request, String key) {
@@ -55,5 +57,19 @@ public class WebUtil {
         c.setMaxAge(0);
         c.setPath("/");
         response.addCookie(c);
+    }
+
+    public static int getUserIdByName(String name) {
+        try {
+            ResultSet rs = executeQuery("SELECT ID FROM USER WHERE NAME = '" + name + "' ");
+            if (rs.next()) {
+                int userId = rs.getInt(1);
+                closeDB();
+                return userId;
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+        }
+        return -1;
     }
 }
